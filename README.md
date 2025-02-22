@@ -177,11 +177,14 @@ async function checkStatus(jobId) {
 ## **Running the Application**
 
 ### **Start the FastAPI Server**
+For development
 ```bash
 cd .\backend/
-# for development 
 fastapi dev .\main.py --port 8000
-# for prod
+```
+For prod
+```bash
+cd .\backend/
 fastapi run .\main.py --host 0.0.0.0 --port 8000
 ```
 
