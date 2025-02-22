@@ -13,6 +13,23 @@ This project provides a FastAPI-based backend for uploading and processing video
 
 ## Installation & Setup
 
+
+### (Optional) Prepare the server
+```bash
+#Login with SSH
+ssh user@your-server-ip
+
+# install dependencies
+sudo apt update && sudo apt install -y python3 python3-venv python3-pip git
+
+# clone project
+git clone https://github.com/TimB0710/longExposureWebApp.git
+cd longExposureWebApp
+
+# allow SSH-Keys for GitHub
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+```
+
 ### 1. **Clone the Repository**
 ```bash
 git clone https://github.com/TimB0710/longExposureWebApp.git
@@ -186,22 +203,6 @@ For prod
 ```bash
 cd .\backend/
 fastapi run .\main.py --host 0.0.0.0 --port 8000
-```
-
-## Prepare the server
-```bash
-#Login with SSH
-ssh user@your-server-ip
-
-# install dependencies
-sudo apt update && sudo apt install -y python3 python3-venv python3-pip git
-
-# clone project
-git clone https://github.com/your-repo.git my-fastapi-app
-cd my-fastapi-app
-
-# allow SSH-Keys for GitHub
-ssh-keyscan github.com >> ~/.ssh/known_hosts
 ```
 
 ## **Future Improvements**
