@@ -188,6 +188,22 @@ cd .\backend/
 fastapi run .\main.py --host 0.0.0.0 --port 8000
 ```
 
+## Prepare the server
+```bash
+#Login with SSH
+ssh user@your-server-ip
+
+# install dependencies
+sudo apt update && sudo apt install -y python3 python3-venv python3-pip git
+
+# clone project
+git clone https://github.com/your-repo.git my-fastapi-app
+cd my-fastapi-app
+
+# allow SSH-Keys for GitHub
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+```
+
 ## **Future Improvements**
 - Use **WebSockets** instead of polling for real-time updates.
 - Add support for **more video formats**.
