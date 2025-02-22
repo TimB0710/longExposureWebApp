@@ -8,6 +8,9 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="./static"), name="static")
 
+OUTPUT_FOLDER = "./output_images"
+app.mount("/output", StaticFiles(directory=OUTPUT_FOLDER), name="output")
+
 app.include_router(api_router, prefix="/api")
 
 

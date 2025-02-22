@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 
 api_router = APIRouter()
+OUTPUT_FOLDER = "./output_images"
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
 @api_router.get("/greet/{name}")
@@ -34,3 +36,11 @@ async def handle_video_upload(file: UploadFile = File(...)):
     return {"message": "Calculations in progress", "jobId": job_id}
   except Exception as e:
     return {"error": str(e)}
+
+
+@api_router.get("/status/{job_id}")
+async def check_status(job_id: str):
+  image_path = os.path.join(OUTPUT_FOLDER, f"{job_id}.jpg")
+  if os.path.exists(image_path):
+    return {"status": "done", "image_url": f"/output/{job_id}.jpg"}
+  return {"status": "processing"}
