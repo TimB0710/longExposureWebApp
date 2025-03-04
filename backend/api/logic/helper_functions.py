@@ -1,5 +1,5 @@
 from typing import List
-from Point import Point
+from .Point import Point
 import numpy as np
 import cv2
 import math

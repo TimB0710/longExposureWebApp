@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import helper_functions as hf
+from .helper_functions import *
 import math
 
 def lighten(image1, image2):
@@ -35,7 +35,7 @@ def screen(image1, image2):
     return result
 
 def screen2(image1, image2, alpha=0.95):
-    alpha = hf.calc_alpha(np.mean(image2))
+    alpha = calc_alpha(np.mean(image2))
     # print(alpha)
     if image1.shape != image2.shape:
         raise ValueError("Both images must have the same dimensions and number of channels")
@@ -67,7 +67,7 @@ def add(image1, image2):
     if image1.shape != image2.shape:
         raise ValueError("Both images must have the same dimensions and number of channels")
     # result = cv2.add(image1, image2)  # Handles overflow by capping at 255
-    result = hf.scale_to_valid_range(image1.astype(np.float64)+image2.astype(np.float64))
+    result = scale_to_valid_range(image1.astype(np.float64)+image2.astype(np.float64))
     return result
 
 def hsvblend(image1,image2):
@@ -80,7 +80,7 @@ def hsvblend(image1,image2):
 
     h_image = np.astype((h1+h2)/2,np.uint8)
     s_image = np.astype((s1+s2)/2,np.uint8)
-    v_image = hf.scale_to_valid_range(v1+v2).astype(np.uint8)
+    v_image = scale_to_valid_range(v1+v2).astype(np.uint8)
     hsv_image = cv2.merge([h_image, s_image, v_image])
     rgb_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
     return rgb_image
@@ -90,5 +90,5 @@ def multiply(image1,image2):
         raise ValueError("Both images must have the same dimensions and number of channels")
     image1 = np.astype(image1,np.float64)
     image2 = np.astype(image2,np.float64)
-    return hf.scale_to_valid_range(image1*image2).astype(np.uint8)
+    return scale_to_valid_range(image1*image2).astype(np.uint8)
 

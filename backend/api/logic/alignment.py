@@ -1,10 +1,10 @@
-import helper_functions as hf
-import blending_algorithms as algos
+from .helper_functions import *
+from .blending_algorithms import *
 import cv2
 # from Point import Point
 
 async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=None,save_debug_image=True):
-
+    print("Creating stacked image", video_path, result_path)
     vidcap = cv2.VideoCapture(video_path)
     # length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -15,7 +15,7 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
     debug_img = frame.copy()
     i = 0
     while success:
-        possible_points_by_image.append(hf.find_stars(frame,i))
+        possible_points_by_image.append(find_stars(frame,i))
         success, frame = vidcap.read()
         i += 1
         
@@ -36,7 +36,7 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
     for i in range(1,len(possible_points_by_image)):
         for point in possible_points_by_image[i]:
             # Get the nearest point and the distance to it considiering the frame number as an extra dimension 
-            nearest_point, dist = point.get_nearest_point(reference_points)
+            nearest_point, dist = get_nearest_point(point,reference_points)
 
             if dist <= max_dist:
                 point.set_group(nearest_point.group)
@@ -48,7 +48,7 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
         for points in possible_points_by_image:
             for p in points:
                 if p.group is not None:
-                    col = hf.hsv2bgr(((p.group*10)%255, 255, 255))
+                    col = hsv2bgr(((p.group*10)%255, 255, 255))
                 else:
                     col = (255,255,255)
                 cv2.drawMarker(debug_img, p.pos, col, markerType=cv2.MARKER_CROSS, markerSize=10, thickness=1)
@@ -71,7 +71,7 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
         success, image = vidcap.read()
         
         pts2 = possible_points_by_image[sorted_indices[i]]
-        T = hf.compute_transformation_matrix(pts1,pts2)
+        T = compute_transformation_matrix(pts1,pts2)
         # T = compute_rotation_translation_matrix(pts1,pts2)
         if T is None:
             continue
@@ -79,4 +79,4 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
         transformed_image = cv2.warpAffine(image, T, (width, height))
         aligned_images.append(transformed_image)
 
-    cv2.imwrite(result_path, hf.stack_images(aligned_images,algos.screen2))
+    cv2.imwrite(result_path, stack_images(aligned_images,screen2))
