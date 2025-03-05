@@ -1,10 +1,39 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
+from fastapi import APIRouter, UploadFile, File, HTTPException
 import shutil
 import magic
-import asyncio
 import os
 import uuid
-from .logic.alignment import create_stacked_image
+import multiprocessing
+
+
+# Separater Wrapper für Multiprocessing
+def run_async_in_process(async_func, *args):
+  """
+  Führt eine asynchrone Funktion in einem separaten Prozess aus
+  """
+  import asyncio
+  return asyncio.run(async_func(*args))
+
+
+class AsyncProcessor:
+  # Verwenden Sie den ProcessPoolExecutor aus dem Modul-Scope
+  _executor = ProcessPoolExecutor()
+
+  @classmethod
+  async def run_async_task(cls, async_func, *args):
+    """
+    Führt eine asynchrone Funktion in einem separaten Prozess aus
+    """
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+      cls._executor,
+      run_async_in_process,
+      async_func,
+      *args
+    )
+
 
 api_router = APIRouter()
 OUTPUT_FOLDER = os.path.join(os.getcwd(), "output")
@@ -32,8 +61,9 @@ async def greet_user(name: str):
 
 
 @api_router.post("/upload")
-async def handle_video_upload(background_tasks: BackgroundTasks,
-    file: UploadFile = File(...)):
+async def handle_video_upload(
+    file: UploadFile = File(...)
+):
   mime = magic.Magic(mime=True)
   file_type = mime.from_buffer(file.file.read(2048))
   file.file.seek(0)
@@ -60,16 +90,37 @@ async def handle_video_upload(background_tasks: BackgroundTasks,
   with open(video_path, "wb") as buffer:
     shutil.copyfileobj(file.file, buffer)
 
-  background_tasks.add_task(create_stacked_image,video_path, image_path)
+  # Asynchrone Verarbeitung
+  asyncio.create_task(
+    AsyncProcessor.run_async_task(
+      create_stacked_image,
+      video_path,
+      image_path
+    )
+  )
 
-  print(output_dir)
-  return {"message": "Calculations in progress", "jobId": generated_uuid}
+  return {
+    "message": "Calculations in progress",
+    "jobId": generated_uuid
+  }
 
 
 @api_router.get("/status/{job_id}")
 async def check_status(job_id: str):
   image_path = image_path_from_uuid(job_id)
-  print(image_path)
+
   if os.path.exists(image_path):
-    return {"status": "done", "image_url": f"/output/{job_id}/{job_id}.jpg"}
+    return {
+      "status": "done",
+      "image_url": f"/output/{job_id}/{job_id}.jpg"
+    }
+
   return {"status": "processing"}
+
+
+# Importieren Sie create_stacked_image am Ende, um zirkuläre Importe zu vermeiden
+from .logic.alignment import create_stacked_image
+
+# Multiprocessing-Unterstützung für Windows
+if __name__ == '__main__':
+  multiprocessing.freeze_support()
