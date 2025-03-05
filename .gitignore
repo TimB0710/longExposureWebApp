@@ -1,3 +1,5 @@
 /.venv/
 /.idea/
 /backend/output_images/
+__pycache__
+/output/

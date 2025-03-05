@@ -3,10 +3,10 @@ from .blending_algorithms import *
 import cv2
 # from Point import Point
 
-async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=None,save_debug_image=True):
+def create_stacked_image(video_path,result_path,star_threshold=None,alpha=None,save_debug_image=True):
     print("Creating stacked image", video_path, result_path)
     vidcap = cv2.VideoCapture(video_path)
-    # length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    video_length = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 
     print("Finding stars in images")
@@ -62,15 +62,23 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
         number_of_points_by_image.append(len(points))
 
     sorted_indices = sorted(range(len(number_of_points_by_image)), key=lambda i: number_of_points_by_image[i], reverse=True)
+    most_stars_index = sorted_indices[0]
+    print('most_stars_index',most_stars_index)
+    print('len(possible_points_by_image)',len(possible_points_by_image))
+    print('video_length',video_length)
 
     aligned_images = []
-    pts1 = possible_points_by_image[sorted_indices[0]]
+    pts1 = possible_points_by_image[most_stars_index]
+    vidcap.set(cv2.CAP_PROP_POS_FRAMES, 0)
     print(f"Aligning images based on Stars")
-    for i in range(0,len(sorted_indices)):
-        vidcap.set(cv2.CAP_PROP_POS_FRAMES, sorted_indices[i])
+    for i in range(0,video_length):
         success, image = vidcap.read()
-        
-        pts2 = possible_points_by_image[sorted_indices[i]]
+        if not success:
+            continue
+        # if i == most_stars_index:
+        #     aligned_images.append(frame)
+        #     continue
+        pts2 = possible_points_by_image[i]
         T = compute_transformation_matrix(pts1,pts2)
         # T = compute_rotation_translation_matrix(pts1,pts2)
         if T is None:
@@ -78,5 +86,5 @@ async def create_stacked_image(video_path,result_path,star_threshold=None,alpha=
         height, width = image.shape[:2]
         transformed_image = cv2.warpAffine(image, T, (width, height))
         aligned_images.append(transformed_image)
-
+    print('len(aligned_images)',len(aligned_images))
     cv2.imwrite(result_path, stack_images(aligned_images,screen2))
