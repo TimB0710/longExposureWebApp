@@ -30,12 +30,15 @@ def compute_transformation_matrix(pts_t1, pts_t2):
     except:
         return None
     
-def get_nearest_point(ref:Point,points:List[Point]):
+def get_nearest_point(ref:Point,points:List[Point],max_lookback:int=None):
     min_dist = float('inf')
     min_dist_point = None
     for point in points:
         if point.frame >= ref.frame:
             continue
+        if max_lookback is not None:
+            if point.frame - ref.frame > 10:
+                continue
         # dist = get_dist(ref,point)
         dist = ref.get_dist_with_time(point)
         if dist < min_dist:
