@@ -3,6 +3,7 @@ from .Point import Point
 import numpy as np
 import cv2
 import math
+import multiprocessing
 
 def compute_transformation_matrix(pts_t1, pts_t2):
     pts1 = []
@@ -106,6 +107,34 @@ def stack_images(image_list,blending_function):
     for i in range(2, len(image_list)):
         out = blending_function(out,image_list[i])
 
+    return out
+
+#ChatGPT
+def stack_images_parallel(image_list, blending_function, num_chunks=10):
+    if len(image_list) < 2:
+        print('image_list has to contain at least 2 images')
+        return None
+    # Noch bafangen, dass image list anch teilung in chunks nich zu klein is
+    if num_chunks > len(image_list)/2:
+        num_chunks = np.floor(len(image_list)/2)
+        print(f'NOTICE [stack_images_parallel]: reduced number of chunks to {num_chunks}')
+    chunk_size = max(1, len(image_list) // num_chunks)
+    chunks = [image_list[i:i + chunk_size] for i in range(0, len(image_list), chunk_size)]
+    print('stack_images_parallel:',blending_function)
+    with multiprocessing.Pool(processes=num_chunks) as pool:
+        results = pool.starmap(blend_chunk, [(chunk, blending_function) for chunk in chunks])
+    
+    # Reduziere die Teilresultate sequentiell
+    out = results[0]
+    for res in results[1:]:
+        out = blending_function(out, res)
+    
+    return out
+
+def blend_chunk(chunk, blending_function):
+    out = chunk[0]
+    for img in chunk[1:]:
+        out = blending_function(out, img)
     return out
 
 def scale_to_valid_range(image):
