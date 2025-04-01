@@ -54,7 +54,8 @@ async function checkStatus(jobId) {
         if (result.status === "done") {
             clearInterval(interval);
             statusText.innerHTML = `Processing complete! 
-                <a href="${result.image_url}" target="_blank">Download result</a>`;
+                <a href="${result.image_url}" target="_blank">Download result</a><br/>
+                <a href="./image_editor.html?imageUrl=${result.image_url}" target="_blank">Edit result</a>`;
         }
     }, 5000);
 }
