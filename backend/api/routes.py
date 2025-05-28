@@ -8,7 +8,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from .logic.alignment import create_stacked_image
 
 api_router = APIRouter()
-OUTPUT_FOLDER = os.path.join(os.getcwd(), "output")
+OUTPUT_FOLDER = os.path.join(os.getcwd(), "../output")
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 mime_to_extension = {
