@@ -1,0 +1,4 @@
+numpy
+opencv-python
+fastapi[standard]
+python-magic
