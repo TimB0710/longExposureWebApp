@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="image_editor_style.css">
+  <title>Document</title>
+</head>
+<body>
+<div class="content-container">
+  <div class="canvas-container">
+    <img id="image"/>
+  </div>
+  <div class="controlls-container">
+    <input type="number" id="th-input">
+  </div>
+</div>
+<script>
+  let thInput = document.querySelector('#th-input');
+  thInput.addEventListener('change', editImage)
+  let image = null;
+  let width = null;
+  let height = null;
+
+  async function init() {
+    let params = new URLSearchParams(document.location.search);
+    let imageUrl = params.get("imageUrl");
+    let res = await fetch(imageUrl);
+    let img = await res.blob()
+    let size = await getImageSize(img)
+    width = size.width
+    height = size.height
+    image = img;
+    updateImage(img)
+  }
+
+  init();
+
+  async function editImage() {
+    let pixels = await imageBlobToPixelArray(image);
+    let cutoff = parseInt(thInput.value);
+    let xoff = cutoff - 1
+    for (let i = 0; i < pixels.length; i++) {
+
+      pixels[i] = Math.max(Math.round(logToBase(pixels[i] - xoff, 255 - xoff) * 255), 0);
+    }
+    let newImg = await pixelArrayToImageBlob(pixels, width, height);
+    updateImage(newImg)
+  }
+
+  function logToBase(x, base) {
+    return Math.log(x) / Math.log(base)
+  }
+
+  function imageBlobToPixelArray(image) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(image);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let data = imageData.data;
+        resolve(data)
+      }
+    });
+  }
+
+  function pixelArrayToImageBlob(pixels, width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.createImageData(width, height);
+    imageData.data.set(pixels);
+    ctx.putImageData(imageData, 0, 0);
+
+    return new Promise(resolve => {
+      canvas.toBlob(resolve, "image/png");
+    });
+  }
+
+  function updateImage(img) {
+    let urlCreator = window.URL || window.webkitURL;
+    let imageDomObj = document.querySelector("#image");
+    let imageUrl = urlCreator.createObjectURL(img);
+    imageDomObj.src = imageUrl;
+  }
+
+  function getImageSize(blob) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({width: img.width, height: img.height});
+      img.src = URL.createObjectURL(blob);
+    });
+  }
+
+</script>
+</body>
+</html>

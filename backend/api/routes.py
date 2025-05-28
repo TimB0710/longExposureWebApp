@@ -1,9 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
-import shutil
-import magic
-import asyncio
 import os
+import shutil
 import uuid
+
+import magic
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+
 from .logic.alignment import create_stacked_image
 
 api_router = APIRouter()
@@ -18,6 +19,7 @@ mime_to_extension = {
   "audio/mpeg": "mp3",
   "image/jpeg": "jpg",
   "image/png": "png",
+  "video/quicktime": "mov",
 }
 
 
@@ -60,7 +62,7 @@ async def handle_video_upload(background_tasks: BackgroundTasks,
   with open(video_path, "wb") as buffer:
     shutil.copyfileobj(file.file, buffer)
 
-  background_tasks.add_task(create_stacked_image,video_path, image_path)
+  background_tasks.add_task(create_stacked_image, video_path, image_path)
 
   print(output_dir)
   return {"message": "Calculations in progress", "jobId": generated_uuid}
