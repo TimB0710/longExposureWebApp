@@ -50,6 +50,17 @@ def get_nearest_point(ref: Point, points: List[Point],
       min_dist_point = point
   return min_dist_point, min_dist
 
+def get_nearest_point_new(ref:Point,points:List[List[Point]],max_lookback:int=20):
+    min_dist = float('inf')
+    min_dist_point = None
+    for frame_num in range(np.max(ref.frame-max_lookback,0),ref.frame):
+        for point in points[frame_num]:
+                dist = ref.get_dist_with_time(point)
+                if dist < min_dist:
+                    min_dist = dist
+                    min_dist_point = point
+    return min_dist_point, min_dist
+
 
 def find_one_block_centers(arr):
   indices = np.where(arr == 1)[0]
