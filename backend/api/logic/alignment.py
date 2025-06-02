@@ -33,7 +33,7 @@ def create_stacked_image(video_path, result_path, star_threshold=None,
   for i in range(1, len(possible_points_by_image)):
     for point in possible_points_by_image[i]:
       # Get the nearest point and the distance to it considering the frame number as an extra dimension
-      nearest_point, dist = get_nearest_point(point, reference_points, 10)
+      nearest_point, dist = get_nearest_point_new(point, reference_points, 20)
 
       if dist <= max_dist:
         point.set_group(nearest_point.group)
